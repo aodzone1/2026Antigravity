@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase 連線診斷工具</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: monospace;
+      padding: 20px;
+    }
+    .card {
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .success { color: #4ade80; }
+    .error { color: #f87171; }
+    .info { color: #60a5fa; }
+    pre {
+      background: #000;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    button {
+      background: #3b82f6;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #2563eb; }
+  </style>
+</head>
+<body>
+  <h1>🔥 Firebase & Firestore 診斷工具</h1>
+  
+  <div class="card">
+    <h3>1. 連線設定值</h3>
+    <pre id="config-display"></pre>
+  </div>
+
+  <div class="card">
+    <h3>2. 測試操作與日誌</h3>
+    <button id="btn-test">開始診斷測試</button>
+    <pre id="log-output">點擊上方按鈕開始測試...</pre>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, limit, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const config = {
+      apiKey: "AIzaSyDWAYHfOK8Av7JrysS3ep01c-pdHtLo_qw",
+      authDomain: "cloudtxt-bf352.firebaseapp.com",
+      projectId: "cloudtxt-bf352",
+      storageBucket: "cloudtxt-bf352.firebasestorage.app",
+      messagingSenderId: "858629705217",
+      appId: "1:858629705217:web:c34e480b34603a493bfa00",
+      measurementId: "G-W4H7QJQBYE"
+    };
+
+    document.getElementById("config-display").textContent = JSON.stringify(config, null, 2);
+
+    const logEl = document.getElementById("log-output");
+    function log(msg, type = "info") {
+      const span = document.createElement("span");
+      span.className = type;
+      span.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+      logEl.appendChild(span);
+    }
+
+    document.getElementById("btn-test").addEventListener("click", async () => {
+      logEl.textContent = "";
+      log("初始化 Firebase App...", "info");
+      
+      try {
+        const app = initializeApp(config);
+        log("Firebase App 初始化成功！", "success");
+        
+        const db = getFirestore(app);
+        log("已取得 Firestore 實例，開始測試寫入資料...", "info");
+        
+        log("正在向 'wordcloud' 寫入一筆測試資料 { word: 'Test', name: 'Diagnostics' }...", "info");
+        const docRef = await addDoc(collection(db, "wordcloud"), {
+          word: "Test",
+          name: "Diagnostics",
+          timestamp: new Date()
+        });
+        log(`資料寫入成功！新增文件 ID: ${docRef.id}`, "success");
+        
+        log("開始測試讀取資料...", "info");
+        const q = query(collection(db, "wordcloud"), limit(5));
+        const querySnapshot = await getDocs(q);
+        log(`成功讀取資料！目前資料庫中共有 ${querySnapshot.size} 筆測試文件。`, "success");
+        querySnapshot.forEach(doc => {
+          log(`  - ID: ${doc.id} => Word: ${doc.data().word}, Name: ${doc.data().name}`, "success");
+        });
+        
+        log("\n🎉 所有連線與讀寫測試成功！您的 Firestore 運作完全正常！", "success");
+        
+      } catch (error) {
+        log(`\n❌ 發生錯誤！測試失敗！`, "error");
+        log(`錯誤名稱: ${error.name}`, "error");
+        log(`錯誤訊息: ${error.message}`, "error");
+        log(`錯誤代碼: ${error.code}`, "error");
+        
+        if (error.code === "permission-denied") {
+          log("\n💡 原因提示：這通常是因為您的 Firestore 安全規則限制了讀寫。請前往 Firebase Console -> Firestore Database -> Rules (規則) 頁面，將規則修改為允許讀寫：\n\nrules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if true;\n    }\n  }\n}", "info");
+        } else if (error.message.includes("Could not reach Cloud Firestore backend") || error.code === "unavailable") {
+          log("\n💡 原因提示：無法連接到 Firestore 伺服器，請檢查您的網路連線是否正常，或您的 API Key/Project ID 是否正確。", "info");
+        } else {
+          log("\n💡 原因提示：請確認您是否已經在 Firebase Console 的 'Firestore Database' 頁面中點擊了 'Create Database' (建立資料庫)。如果尚未建立資料庫，所有的 API 要求都會失敗。", "info");
+        }
+      }
+    });
+  </script>
+</body>
+</html>
