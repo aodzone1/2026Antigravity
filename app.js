@@ -84,18 +84,36 @@ function setupConfigTabToggle() {
   });
 }
 
+// Default Firebase Configuration (pre-configured from user)
+const DEFAULT_CONFIG = {
+  apiKey: "AIzaSyDWAYHfOK8Av7JrysS3ep01c-pdHtLo_qw",
+  authDomain: "cloudtxt-bf352.firebaseapp.com",
+  projectId: "cloudtxt-bf352",
+  storageBucket: "cloudtxt-bf352.firebasestorage.app",
+  messagingSenderId: "858629705217",
+  appId: "1:858629705217:web:c34e480b34603a493bfa00",
+  measurementId: "G-W4H7QJQBYE"
+};
+
 // Firebase Initialization
 function initFirebaseFromStorage() {
+  let config = null;
   const savedConfig = localStorage.getItem("cloudtxt_firebase_config");
-  if (!savedConfig) {
-    updateStatus(false, "尚未設定 Firebase 連線");
-    toggleEmptyState(true);
-    return;
+  
+  if (savedConfig) {
+    try {
+      config = JSON.parse(savedConfig);
+    } catch (e) {
+      console.warn("解析本機儲存之 Firebase 設定失敗，改用預設設定。");
+    }
+  }
+  
+  // Fallback to default if no local config exists
+  if (!config) {
+    config = DEFAULT_CONFIG;
   }
   
   try {
-    const config = JSON.parse(savedConfig);
-    
     // Safety check
     if (!config.projectId || !config.apiKey) {
       throw new Error("設定檔欄位不齊全");
