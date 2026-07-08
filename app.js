@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupConfigTabToggle();
   initFirebaseFromStorage();
   resizeCanvas();
+  initBGMPlayer();
   
   // Event Listeners
   btnSettings.addEventListener("click", () => showModal(true));
@@ -410,4 +411,77 @@ async function handleSubmitWord(e) {
   } finally {
     btnSaveConfig.disabled = false;
   }
+}
+
+// ==========================================================================
+// Floating BGM Controller Initialization & Logic
+// ==========================================================================
+function initBGMPlayer() {
+  const bgmPlayer = document.getElementById("bgm-player");
+  const bgmController = document.getElementById("bgm-controller");
+  const btnBgmToggle = document.getElementById("btn-bgm-toggle");
+  const playIcon = document.getElementById("play-icon");
+  const pauseIcon = document.getElementById("pause-icon");
+  const bgmSelect = document.getElementById("bgm-select");
+  const bgmVolume = document.getElementById("bgm-volume");
+  const bgmIconSvg = document.getElementById("bgm-icon-svg");
+
+  const MUSIC_TRACKS = {
+    lobby: "https://raw.githubusercontent.com/aodzone1/2026Antigravity/master/music/bgm_lobby.mp3",
+    battle: "https://raw.githubusercontent.com/aodzone1/2026Antigravity/master/music/bgm_battle.mp3",
+    victory: "https://raw.githubusercontent.com/aodzone1/2026Antigravity/master/music/bgm_victory.mp3"
+  };
+
+  let isPlaying = false;
+
+  // Set initial source
+  bgmPlayer.src = MUSIC_TRACKS[bgmSelect.value];
+  bgmPlayer.volume = bgmVolume.value;
+
+  // Play / Pause Toggle
+  function togglePlay() {
+    if (isPlaying) {
+      bgmPlayer.pause();
+      isPlaying = false;
+      bgmController.classList.remove("playing");
+      bgmIconSvg.classList.remove("playing");
+      playIcon.classList.remove("hidden");
+      pauseIcon.classList.add("hidden");
+    } else {
+      bgmPlayer.play().then(() => {
+        isPlaying = true;
+        bgmController.classList.add("playing");
+        bgmIconSvg.classList.add("playing");
+        playIcon.classList.add("hidden");
+        pauseIcon.classList.remove("hidden");
+      }).catch(err => {
+        console.warn("Autoplay blocked or play failed: ", err);
+      });
+    }
+  }
+
+  // Handle Track Selection Change
+  bgmSelect.addEventListener("change", () => {
+    const wasPlaying = isPlaying;
+    bgmPlayer.src = MUSIC_TRACKS[bgmSelect.value];
+    if (wasPlaying) {
+      bgmPlayer.play().then(() => {
+        isPlaying = true;
+      }).catch(err => {
+        console.warn("Play failed on selection change: ", err);
+        isPlaying = false;
+        bgmController.classList.remove("playing");
+        bgmIconSvg.classList.remove("playing");
+        playIcon.classList.remove("hidden");
+        pauseIcon.classList.add("hidden");
+      });
+    }
+  });
+
+  // Handle Volume Change
+  bgmVolume.addEventListener("input", (e) => {
+    bgmPlayer.volume = e.target.value;
+  });
+
+  btnBgmToggle.addEventListener("click", togglePlay);
 }

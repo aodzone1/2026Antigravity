@@ -564,3 +564,211 @@ form {
   border-top: 1px solid var(--card-border);
   padding-top: 1.25rem;
 }
+
+/* ==========================================================================
+   Floating BGM Controller Styles
+   ========================================================================== */
+.bgm-controller {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: 240px;
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  transition: var(--transition-smooth);
+}
+
+.bgm-controller:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(147, 51, 234, 0.25);
+  border-color: var(--card-border-focus);
+}
+
+.bgm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bgm-title-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bgm-icon {
+  color: var(--accent);
+  transition: transform 0.3s ease;
+}
+
+.bgm-icon.playing {
+  animation: rotateMusic 4s linear infinite;
+}
+
+@keyframes rotateMusic {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.bgm-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+
+.bgm-toggle-btn {
+  background: var(--primary);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.bgm-toggle-btn:hover {
+  transform: scale(1.1);
+  background: #a855f7;
+}
+
+.bgm-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.bgm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bgm-select-group, .bgm-volume-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bgm-select-group label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.glass-select {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.glass-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.bgm-volume-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.volume-slider {
+  flex-grow: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  margin-top: -4px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #22d3ee;
+}
+
+/* Visualizer Bars */
+.bgm-visualizer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+  margin-top: 4px;
+  opacity: 0.3;
+  transition: var(--transition-smooth);
+}
+
+.bgm-controller:hover .bgm-visualizer {
+  opacity: 0.7;
+}
+
+.bgm-visualizer .bar {
+  width: 3px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+.bgm-controller.playing .bgm-visualizer .bar {
+  animation: bounce 0.8s ease-in-out infinite alternate;
+}
+
+.bgm-controller.playing .bgm-visualizer .bar:nth-child(1) { animation-delay: 0.1s; height: 10px; }
+.bgm-controller.playing .bgm-visualizer .bar:nth-child(2) { animation-delay: 0.3s; height: 6px; }
+.bgm-controller.playing .bgm-visualizer .bar:nth-child(3) { animation-delay: 0.0s; height: 14px; }
+.bgm-controller.playing .bgm-visualizer .bar:nth-child(4) { animation-delay: 0.4s; height: 8px; }
+.bgm-controller.playing .bgm-visualizer .bar:nth-child(5) { animation-delay: 0.2s; height: 11px; }
+
+@keyframes bounce {
+  10% { height: 4px; }
+  50% { height: 16px; }
+  90% { height: 6px; }
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .bgm-controller {
+    bottom: 16px;
+    right: 16px;
+    width: 200px;
+    padding: 12px;
+  }
+}
