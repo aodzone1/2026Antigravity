@@ -1,0 +1,55 @@
+# 個人設定與機密
+.env
+.env.local
+.env.production
+.env.development
+*.key
+*.pem
+*.p12
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebaserc.local
+
+# NotebookLM 個人資料
+notebooks.json
+*.notebooklm-export*
+
+# API Keys / Tokens
+secrets/
+credentials/
+*token*.json
+*credential*.json
+service-account*.json
+
+# 生成圖片（臨時）
+*.generated.png
+*.generated.jpg
+*.generated.webp
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 編輯器
+.vscode/settings.json
+.idea/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# 測試與暫存
+tmp/
+temp/
+scratch/
+*.tmp
