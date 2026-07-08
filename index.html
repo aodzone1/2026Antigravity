@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="互動式 3D 質感文字雲網站，即時串接 Firebase Firestore 資料庫，懸停時可動態顯示每組詞彙的輸入者名單。">
+  <title>CloudTxt - 互動式雲端文字雲</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- WordCloud2.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js" integrity="sha512-lP49v4hGAC18ad1e8QsgAuh+E98eeGz1W4LsmFdfa6beG95zAcUsoK/nB3JjN5G1s98Y2kZ4+p9C13p68hH5yQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+  <!-- Background Glows -->
+  <div class="bg-glow blob-1"></div>
+  <div class="bg-glow blob-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.36 10.04C18.67 6.59 15.64 4 12 4C9.11 4 6.6 5.64 5.35 8.04C2.34 8.36 0 10.91 0 14C0 17.31 2.69 20 6 20H19C21.76 20 24 17.76 24 15C24 12.36 21.95 10.22 19.36 10.04ZM19 18H6C3.79 18 2 16.21 2 14C2 11.95 3.53 10.24 5.56 10.03L6.63 9.92L7.13 8.97C8.08 7.14 9.94 6 12 6C14.89 6 17.31 8.02 17.85 10.85L18.09 12.14L19.39 12.23C20.89 12.33 22 13.56 22 15C22 16.65 20.65 18 19 18Z" fill="url(#logoGrad)"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#805ad5"/>
+              <stop offset="1" stop-color="#3182ce"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1 id="main-title">CloudTxt <span class="accent-text">文字雲</span></h1>
+      </div>
+      
+      <div class="header-actions">
+        <button id="btn-settings" class="glass-btn" title="設定 Firebase 連線">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          設定連線
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Input Sidebar -->
+      <section class="control-panel glass-card">
+        <h2>📥 新增詞彙</h2>
+        <p class="section-desc">輸入詞彙與您的名字，送出後文字雲將會即時更新並放大頻率高的字詞！</p>
+        
+        <form id="word-form">
+          <div class="input-group">
+            <label for="input-word">要加入的詞彙</label>
+            <input type="text" id="input-word" placeholder="例如：Python, Gemini" required maxlength="20">
+          </div>
+          
+          <div class="input-group">
+            <label for="input-name">您的名字</label>
+            <input type="text" id="input-name" placeholder="例如：阿明, Alice" required maxlength="15">
+          </div>
+          
+          <button type="submit" id="btn-submit" class="primary-btn">
+            <span>送出詞彙</span>
+            <div class="btn-glow"></div>
+          </button>
+        </form>
+
+        <div class="db-status-bar">
+          <span class="status-indicator" id="status-dot"></span>
+          <span id="status-text">未連線到 Firebase</span>
+        </div>
+      </section>
+
+      <!-- Word Cloud Display Area -->
+      <section class="display-panel glass-card">
+        <div class="panel-header">
+          <h2>☁️ 雲端即時文字雲</h2>
+          <span class="tip-badge">💡 滑鼠懸停字詞可檢視所有輸入者</span>
+        </div>
+        
+        <div class="cloud-wrapper">
+          <canvas id="cloud-canvas"></canvas>
+          <div id="cloud-empty" class="empty-state">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z" />
+            </svg>
+            <p>請設定 Firebase 連線，並開始輸入詞彙！</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Custom Tooltip -->
+  <div id="cloud-tooltip" class="custom-tooltip">
+    <div class="tooltip-word" id="tooltip-word"></div>
+    <div class="tooltip-info">
+      <span>出現次數：<strong id="tooltip-count">0</strong> 次</span>
+    </div>
+    <div class="tooltip-names" id="tooltip-names"></div>
+  </div>
+
+  <!-- Firebase Config Modal -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-container glass-card">
+      <div class="modal-header">
+        <h3>🔥 Firebase 專案連線設定</h3>
+        <button id="modal-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          請貼上您的 Firebase Web App SDK 設定。這些設定將<strong>僅儲存於您的本機瀏覽器（Local Storage）</strong>，保證隱私安全。
+        </p>
+        
+        <div class="config-toggle-group">
+          <button id="btn-toggle-json" class="toggle-tab active">JSON 配置貼上</button>
+          <button id="btn-toggle-fields" class="toggle-tab">手動欄位輸入</button>
+        </div>
+
+        <!-- JSON Textarea Paste -->
+        <div id="config-json-area" class="config-tab-content active">
+          <div class="input-group">
+            <label for="json-config">貼上 Firebase SDK Config JSON (如 `const firebaseConfig = { ... }` 中的內容)</label>
+            <textarea id="json-config" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "cloudtxt.firebaseapp.com",
+  "projectId": "cloudtxt",
+  "storageBucket": "cloudtxt.appspot.com",
+  "messagingSenderId": "12345678",
+  "appId": "1:12345:web:abcd..."
+}'></textarea>
+          </div>
+        </div>
+
+        <!-- Manual Fields Input -->
+        <div id="config-fields-area" class="config-tab-content">
+          <div class="fields-grid">
+            <div class="input-group">
+              <label for="field-apiKey">API Key (apiKey)</label>
+              <input type="text" id="field-apiKey" placeholder="AIzaSy...">
+            </div>
+            <div class="input-group">
+              <label for="field-authDomain">Auth Domain</label>
+              <input type="text" id="field-authDomain" placeholder="cloudtxt.firebaseapp.com">
+            </div>
+            <div class="input-group">
+              <label for="field-projectId">Project ID (projectId)</label>
+              <input type="text" id="field-projectId" placeholder="cloudtxt">
+            </div>
+            <div class="input-group">
+              <label for="field-appId">App ID (appId)</label>
+              <input type="text" id="field-appId" placeholder="1:12345:web:abcd...">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-save-config" class="primary-btn">儲存設定並連接</button>
+          <button id="btn-clear-config" class="danger-btn">清除設定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Module -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
